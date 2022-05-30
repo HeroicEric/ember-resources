@@ -29,6 +29,10 @@
   "dependencies": {
     "@ember/test-waiters": "^3.0.1",
     "@embroider/macros": "^1.6.0",
+    "@glint/config": "^0.8.2",
+    "@glint/core": "^0.8.2",
+    "@glint/environment-ember-loose": "^0.8.2",
+    "@glint/environment-ember-template-imports": "^0.8.2",
     "ember-async-data": "^0.6.0",
     "ember-concurrency": "^2.0.0",
     "ember-concurrency-ts": "^0.3.1",
