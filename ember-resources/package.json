@@ -83,9 +83,9 @@
   },
   "peerDependencies": {
     "@ember/test-waiters": "^3.0.0",
-    "@glimmer/tracking": "^1.0.0",
-    "ember-concurrency": "^1.0.0 || ^2.0.0",
-    "ember-source": ">= 3.25.0"
+    "@glimmer/tracking": "^1.1.2",
+    "ember-concurrency": "^2.0.0",
+    "ember-source": ">= 3.28.0"
   },
   "peerDependenciesMeta": {
     "ember-concurrency": {
