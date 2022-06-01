@@ -11,7 +11,6 @@ import { assert } from '@ember/debug';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import { invokeHelper } from '@ember/helper';
-import { get as consumeTag } from '@ember/object';
 import { get } from '@ember/object';
 
 import { Resource } from '../core';
@@ -21,12 +20,12 @@ import { DEFAULT_THUNK, normalizeThunk } from '../core/utils';
 import type { Cache } from '../core/types';
 
 /**
- * @utility uses [[LifecycleResource]] to make ember-concurrency tasks reactive.
+ * @utility uses [[Resource]] to make ember-concurrency tasks reactive.
  *
  * -------------------------
  *
  * @note `ember-resources` does not provide or depend on ember-concurrency.
- * If you want to use [[useTask]], you'll need to add ember-concurrency as a dependency
+ * If you want to use [[task]], you'll need to add ember-concurrency as a dependency
  * in your project.
  *
  * @example
@@ -233,11 +232,6 @@ export class TaskResource<
   declare lastTask: TaskInstance<Return> | undefined;
 
   get value() {
-    // in ember-concurrency@v1, value is not consumable tracked data
-    // until the task is resolved, so we need to consume the isRunning
-    // property so that value updates
-    consumeTag(this.currentTask, 'isRunning');
-
     return this.currentTask.value ?? this.lastTask?.value;
   }
 
