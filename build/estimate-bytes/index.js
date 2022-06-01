@@ -41,7 +41,7 @@ async function collectStats() {
   // This will get posted to github as a comment, so let's use a markdown table
   let output = `_Estimated_ impact to a consuming app, depending on which bundle is imported\n\n`;
 
-  output += '|  | js | min | min + gzip | min + brotli |\n';
+  output += '| import ... from ember-resources | js | min | min + gzip | min + brotli |\n';
   output += '|--| -- | --- | ---------- | ------------ |\n';
 
   for (let [file, fileStats] of Object.entries(stats)) {
