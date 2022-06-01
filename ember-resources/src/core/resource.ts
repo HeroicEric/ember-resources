@@ -90,58 +90,6 @@ export class Resource<T extends ArgsWrapper = ArgsWrapper> {
   /**
    * For use in the body of a class.
    *
-   * @note prefer [[from]]
-   *
-   * `of` is what allows resources to be used in JS, they hide the reactivity APIs
-   * from the consumer so that the surface API is smaller. Though, from an end-user-api
-   * ergonomics perspective, you wouldn't typically want to rely on this. As in
-   * [ember-data-resources](https://github.com/NullVoxPopuli/ember-data-resources/)
-   *
-   * Given this potential use:
-   * ```ts
-   * import { Resource } from 'ember-resources';
-   *
-   * class SomeResource extends Resource {}
-   *
-   * class MyClass {
-   *   data = Resource.of(this, SomeResource, () => [arg list]);
-   * }
-   * ```
-   *
-   * a better user-facing api, may be provided by:
-   * ```js
-   * export function someResource(context, args) {
-   *   return Resource.of(context, SomeResource, () =>  ... );
-   * }
-   * ```
-   *  usage:
-   * ```js
-   * import { someResource } from 'your-library';
-   *
-   * class SomeResource extends Resource {}
-   *
-   * class MyClass {
-   *   data = someResource(this, () => [arg list]);
-   * }
-   * ```
-   *
-   * When any tracked data in the args thunk is updated, the Resource will be updated as well
-   *
-   *  - The `this` is to keep track of destruction -- so when `MyClass` is destroyed, all the resources attached to it can also be destroyed.
-   *  - The resource will **do nothing** until it is accessed. Meaning, if you have a template that guards
-   *    access to the data, like:
-   *    ```hbs
-   *    {{#if this.isModalShowing}}
-   *       <Modal>{{this.data.someProperty}}</Modal>
-   *    {{/if}}
-   *    ```
-   *    the Resource will not be instantiated until `isModalShowing` is true.
-   */
-  static of = resourceOf;
-
-  /**
-   * For use in the body of a class.
-   *
    * `from` is what allows resources to be used in JS, they hide the reactivity APIs
    * from the consumer so that the surface API is smaller.
    * Unlike `of`, due to the fewer arguments required in `from`, though it _may_ be more
@@ -184,13 +132,11 @@ export class Resource<T extends ArgsWrapper = ArgsWrapper> {
    * ```
    */
   static from<Instance extends Resource<ArgsWrapper>>(
-    this: (new (...args: unknown[]) => Instance) & {
-      of: typeof resourceOf;
-    },
+    this: (new (...args: unknown[]) => Instance),
     context: object,
     thunk?: Thunk | (() => unknown)
   ) {
-    return this.of(context, this, thunk);
+    return resourceOf(context, this, thunk);
   }
 
   constructor(owner: unknown) {

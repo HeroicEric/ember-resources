@@ -179,9 +179,8 @@ export function map<Element = unknown, MapTo = unknown>(
   let { data, map } = options;
 
   // Fixing this requires TS 4.7, see notes in Resource.of
-  let resource = Resource.of<TrackedArrayMap<Element, MapTo>>(
+  let resource = TrackedArrayMap.from<TrackedArrayMap<Element, MapTo>>(
     destroyable,
-    TrackedArrayMap as any,
     () => {
       let reified = data();
 
