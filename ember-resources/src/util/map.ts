@@ -178,15 +178,11 @@ export function map<Element = unknown, MapTo = unknown>(
 ) {
   let { data, map } = options;
 
-  // Fixing this requires TS 4.7, see notes in Resource.of
-  let resource = TrackedArrayMap.from<TrackedArrayMap<Element, MapTo>>(
-    destroyable,
-    () => {
-      let reified = data();
+  let resource = TrackedArrayMap<Element, MapTo>.from(destroyable, () => {
+    let reified = data();
 
-      return { positional: [reified], named: { map } };
-    }
-  );
+    return { positional: [reified], named: { map } };
+  });
 
   /**
    * This is what allows square-bracket index-access to work.

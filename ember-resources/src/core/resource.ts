@@ -9,6 +9,8 @@ import { capabilities as helperCapabilities, invokeHelper, setHelperManager } fr
 import { DEFAULT_THUNK, normalizeThunk } from './utils';
 
 import type { ArgsWrapper, Cache, Thunk } from './types';
+import type { HelperLike } from '@glint/template';
+import { AnyFunction, Invoke } from '@glint/template/-private/integration';
 
 /**
  * The 'Resource' base class has only one lifecycle hook, `modify`, which is called during
@@ -86,14 +88,30 @@ import type { ArgsWrapper, Cache, Thunk } from './types';
  * This way, consumers only need one import.
  *
  */
-export class Resource<T extends ArgsWrapper = ArgsWrapper> {
+export class Resource<T extends ArgsWrapper = ArgsWrapper> implements InstanceType<HelperLike<{
+  Args: { Named: NonNullable<T['named']>, Positional: NonNullable<T['positional']> };
+  Return: Resource<T>
+}>> {
+  /**
+    * @private (secret)
+    *
+    * This is a lie, but a useful one for Glint, because
+    * Glint's "HelperLike" matches on this "Invoke" property.
+      *
+      * Faking the interface of `HelperLike` is the only way we can get Glint to treat
+    *  class-based resources as helpers in templates.
+      *
+      * If subclassing was not needed, we could just "merge the interface" with Resource
+    * and HelperLike, but merged interfaces are not retained in subclasses.
+    */
+  declare [Invoke]: AnyFunction;
+
   /**
    * For use in the body of a class.
    *
    * `from` is what allows resources to be used in JS, they hide the reactivity APIs
    * from the consumer so that the surface API is smaller.
-   * Unlike `of`, due to the fewer arguments required in `from`, though it _may_ be more
-   * convenient to not wrap your resource abstraction in a helper function.
+   * Though it _may_ be more convenient to not wrap your resource abstraction in a helper function.
    *
    * ```js
    * import { Resource } from 'ember-resources';
@@ -131,11 +149,11 @@ export class Resource<T extends ArgsWrapper = ArgsWrapper> {
    * }
    * ```
    */
-  static from<Instance extends Resource<ArgsWrapper>>(
-    this: (new (...args: unknown[]) => Instance),
-    context: object,
-    thunk?: Thunk | (() => unknown)
-  ) {
+  static from<Instance extends Resource<Args>, Args extends ArgsWrapper = ArgsWrapper>(
+      this: (new (...args: unknown[]) => Instance),
+      context: object,
+      thunk?: Thunk | (() => unknown)
+    ): Instance {
     return resourceOf(context, this, thunk);
   }
 
@@ -143,8 +161,24 @@ export class Resource<T extends ArgsWrapper = ArgsWrapper> {
     setOwner(this, owner);
   }
 
+  /**
+   * this lifecycle hook is called whenever arguments to the resource change.
+   * This can be useful for calling functions, comparing previous values, etc.
+   */
   modify?(positional: T['positional'], named: T['named']): void;
 }
+
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+// export interface Resource<T = ArgsWrapper> extends InstanceType<HelperLike<{
+//   Args: { Named: NonNullable<T['named']>, Positional: NonNullable<T['positional']> }
+//   Return: number
+// }>> {}
+
+// export interface Resource<T> extends InstanceType<HelperLike<{
+//   Args: {}
+//   Return: number
+// }>> {}
 
 class ResourceManager {
   capabilities = helperCapabilities('3.23', {
