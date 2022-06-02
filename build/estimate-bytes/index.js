@@ -62,10 +62,16 @@ async function collectStats() {
   for (let [file, fileStats] of Object.entries(stats)) {
     output += rowFor(file, fileStats);
 
-    if (config.bundles[file]?.nest) {
-      for (let nested of config.bundles[file].nest) {
-        if (stats[nested]) {
-          output += rowFor(nested, stats[nested]);
+    let relativeFile = file.replace(/^\//, '');
+    if (config.bundles[relativeFile]?.nest) {
+      let nest = config.bundles[relativeFile].nest;
+
+      for (let nested of nest) {
+        if (stats['/' + nested]) {
+          let isLast = nest.indexOf(nested) === nest.length - 1;
+          let glyph = isLast ? '└── ' : '├── ';
+
+          output += rowFor(nested, stats['/' + nested], glyph);
         }
       }
     }
