@@ -12,8 +12,16 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, '../..');
 const dist = path.join(root, 'ember-resources/dist');
 
-const bundlePatterns = ['core/index.js', 'util/*.js'];
-
+const config = {
+  bundles: {
+    'index.js': {
+      alias: '.',
+      nest: ['core/index.js', 'util/function-resource.js']
+    },
+    'core/index.js': { alias: 'core' },
+    'util/*.js': {},
+  }
+}
 /**
  * 1. Create bundles
  * 2. Minify
@@ -22,6 +30,7 @@ const bundlePatterns = ['core/index.js', 'util/*.js'];
 async function collectStats() {
   let { path: tmp } = await tmpDir();
 
+  let bundlePatterns = Object.keys(config.bundles);
   let originalDistPaths = await globby(bundlePatterns.map((p) => path.join(dist, p)));
   let stats = {};
 
@@ -44,10 +53,22 @@ async function collectStats() {
   output += '| import ... from ember-resources | js | min | min + gzip | min + brotli |\n';
   output += '|--| -- | --- | ---------- | ------------ |\n';
 
-  for (let [file, fileStats] of Object.entries(stats)) {
+  let rowFor = (file, fileStats, indent = '') => {
     let { js, 'js.min': min, 'js.min.br': brotli, 'js.min.gz': gzip } = fileStats;
 
-    output += `| ${file} | ${js} | ${min} | ${gzip} | ${brotli} |\n`;
+    return `| ${indent}${file} | ${js} | ${min} | ${gzip} | ${brotli} |\n`;
+  }
+
+  for (let [file, fileStats] of Object.entries(stats)) {
+    output += rowFor(file, fileStats);
+
+    if (config.bundles[file]?.nest) {
+      for (let nested of config.bundles[file].nest) {
+        if (stats[nested]) {
+          output += rowFor(nested, stats[nested]);
+        }
+      }
+    }
   }
 
   console.debug(output);
