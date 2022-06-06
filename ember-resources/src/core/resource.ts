@@ -10,7 +10,23 @@ import { DEFAULT_THUNK, normalizeThunk } from './utils';
 
 import type { ArgsWrapper, Cache, Thunk } from './types';
 import type { HelperLike } from '@glint/template';
-import { AnyFunction, Invoke } from '@glint/template/-private/integration';
+import { Invoke } from '@glint/template/-private/integration';
+
+
+/**
+  * https://gist.github.com/dfreeman/e4728f2f48737b44efb99fa45e2d22ef#typing-the-return-value-implicitly
+  *
+  * This is a Glint helper to help HelperLike determine what the ReturnType is.
+  */
+type ResourceHelperLike<T extends ArgsWrapper, R> = InstanceType<
+  HelperLike<{
+    Args: {
+      Named: T['named'];
+      Positional: T['positional'];
+    };
+    Return: R;
+  }>
+>;
 
 /**
  * The 'Resource' base class has only one lifecycle hook, `modify`, which is called during
@@ -88,10 +104,7 @@ import { AnyFunction, Invoke } from '@glint/template/-private/integration';
  * This way, consumers only need one import.
  *
  */
-export class Resource<T extends ArgsWrapper = ArgsWrapper> implements InstanceType<HelperLike<{
-  Args: { Named: NonNullable<T['named']>, Positional: NonNullable<T['positional']> };
-  Return: Resource<T>
-}>> {
+export class Resource<T extends ArgsWrapper = ArgsWrapper> {
   /**
     * @private (secret)
     *
@@ -103,8 +116,10 @@ export class Resource<T extends ArgsWrapper = ArgsWrapper> implements InstanceTy
       *
       * If subclassing was not needed, we could just "merge the interface" with Resource
     * and HelperLike, but merged interfaces are not retained in subclasses.
+      *
+      * Without this, the static method, from, would have a type error.
     */
-  declare [Invoke]: AnyFunction;
+  declare [Invoke]: ResourceHelperLike<T, this>[typeof Invoke];
 
   /**
    * For use in the body of a class.
@@ -149,7 +164,7 @@ export class Resource<T extends ArgsWrapper = ArgsWrapper> implements InstanceTy
    * }
    * ```
    */
-  static from<Instance extends Resource<Args>, Args extends ArgsWrapper = ArgsWrapper>(
+  static from<Instance extends Resource>(
       this: (new (...args: unknown[]) => Instance),
       context: object,
       thunk?: Thunk | (() => unknown)
@@ -169,16 +184,19 @@ export class Resource<T extends ArgsWrapper = ArgsWrapper> implements InstanceTy
 }
 
 
+/**
+  *
+  */
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-// export interface Resource<T = ArgsWrapper> extends InstanceType<HelperLike<{
-//   Args: { Named: NonNullable<T['named']>, Positional: NonNullable<T['positional']> }
-//   Return: number
-// }>> {}
-
-// export interface Resource<T> extends InstanceType<HelperLike<{
-//   Args: {}
-//   Return: number
-// }>> {}
+// export interface Resource<T extends ArgsWrapper = ArgsWrapper> extends InstanceType<
+//   HelperLike<{
+//     Args: {
+//       Named: NonNullable<T['named']>;
+//       Positional: NonNullable<T['positional']>
+//     };
+//     // Return: number
+//   }>
+// > {}
 
 class ResourceManager {
   capabilities = helperCapabilities('3.23', {

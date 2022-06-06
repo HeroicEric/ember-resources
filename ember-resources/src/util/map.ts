@@ -178,7 +178,7 @@ export function map<Element = unknown, MapTo = unknown>(
 ) {
   let { data, map } = options;
 
-  let resource = TrackedArrayMap<Element, MapTo>.from(destroyable, () => {
+  let resource = TrackedArrayMap.from<TrackedArrayMap<Element, MapTo>>(destroyable, () => {
     let reified = data();
 
     return { positional: [reified], named: { map } };
