@@ -164,11 +164,11 @@ export class Resource<T extends ArgsWrapper = ArgsWrapper> {
    * }
    * ```
    */
-  static from<Instance extends Resource>(
-      this: (new (...args: unknown[]) => Instance),
+  static from<T extends abstract new (...args: any) => any>(
+      this: T,
       context: object,
       thunk?: Thunk | (() => unknown)
-    ): Instance {
+    ): InstanceType<T> {
     return resourceOf(context, this, thunk);
   }
 
@@ -241,9 +241,9 @@ class ResourceManager {
 
 setHelperManager((owner: unknown) => new ResourceManager(owner), Resource);
 
-function resourceOf<Instance extends Resource<ArgsWrapper>, Args extends unknown[] = unknown[]>(
+function resourceOf<Instance extends abstract new (...args: any) => any, Args extends unknown[] = unknown[]>(
   context: object,
-  klass: new (...args: unknown[]) => Instance,
+  klass: abstract new (...args: any) => InstanceType<Instance>,
   thunk?: Thunk | (() => Args)
 ): Instance {
   assert(
